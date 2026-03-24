@@ -50,6 +50,17 @@ pub enum MaybeSet<T> {
     Null,
 }
 
+
+/// Find the largest character boundary at or before `index`.
+/// This is a compatibility function for stable Rust.
+pub fn floor_char_boundary_compat(text: &str, index: usize) -> usize {
+    let mut end = index.min(text.len());
+    while end > 0 && !text.is_char_boundary(end) {
+        end -= 1;
+    }
+    end
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
