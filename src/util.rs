@@ -2,6 +2,26 @@
 //!
 //! This module contains reusable helper functions used across the codebase.
 
+/// Allowed serial device path prefixes — reject arbitrary paths for security.
+/// Used by hardware serial transport and peripherals.
+const SERIAL_ALLOWED_PATH_PREFIXES: &[&str] = &[
+    "/dev/ttyACM",
+    "/dev/ttyUSB",
+    "/dev/tty.usbmodem",
+    "/dev/cu.usbmodem",
+    "/dev/tty.usbserial",
+    "/dev/cu.usbserial", // Arduino Uno (FTDI), clones
+    "COM",               // Windows
+];
+
+/// Returns true if the path is an allowed serial device (USB CDC, FTDI, etc.).
+/// Rejects arbitrary paths like /etc/passwd or /dev/sda.
+pub fn is_serial_path_allowed(path: &str) -> bool {
+    SERIAL_ALLOWED_PATH_PREFIXES
+        .iter()
+        .any(|prefix| path.starts_with(prefix))
+}
+
 /// Truncate a string to at most `max_chars` characters, appending "..." if truncated.
 ///
 /// This function safely handles multi-byte UTF-8 characters (emoji, CJK, accented characters)
@@ -48,17 +68,6 @@ pub enum MaybeSet<T> {
     Set(T),
     Unset,
     Null,
-}
-
-
-/// Find the largest character boundary at or before `index`.
-/// This is a compatibility function for stable Rust.
-pub fn floor_char_boundary_compat(text: &str, index: usize) -> usize {
-    let mut end = index.min(text.len());
-    while end > 0 && !text.is_char_boundary(end) {
-        end -= 1;
-    }
-    end
 }
 
 #[cfg(test)]

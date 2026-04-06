@@ -1,6 +1,5 @@
 use super::traits::{Tool, ToolResult};
 use crate::security::SecurityPolicy;
-use crate::util::floor_char_boundary_compat;
 use async_trait::async_trait;
 use serde_json::json;
 use std::fmt::Write;
@@ -174,7 +173,11 @@ impl ScreenshotTool {
                 let size = bytes.len();
                 let mut encoded = base64::engine::general_purpose::STANDARD.encode(&bytes);
                 let truncated = if encoded.len() > MAX_BASE64_BYTES {
-                    encoded.truncate(floor_char_boundary_compat(&encoded, MAX_BASE64_BYTES));
+                    let mut boundary = MAX_BASE64_BYTES.min(encoded.len());
+                    while boundary > 0 && !encoded.is_char_boundary(boundary) {
+                        boundary -= 1;
+                    }
+                    encoded.truncate(boundary);
                     true
                 } else {
                     false
